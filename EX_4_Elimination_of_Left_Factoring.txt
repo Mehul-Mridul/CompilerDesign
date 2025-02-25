@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <string.h>
+
+#define SIZE 100
+#define MAX_PRODUCTIONS 10
+
+void eliminateLeftFactoring(char non_terminal, char *production) {
+    char part[MAX_PRODUCTIONS][SIZE], common[SIZE] = "", newGram[MAX_PRODUCTIONS][SIZE];
+    int count = 0, pos = 0, hasEpsilon = 0;
+
+    // Split production at '|'
+    char *token = strtok(production, "|");
+    while (token) {
+        if (!strcmp(token, "ε")) hasEpsilon = 1;
+        else strcpy(part[count++], token);
+        token = strtok(NULL, "|");
+    }
+
+    if (count < 2) { // No left factoring needed
+        printf("%c -> %s\n", non_terminal, production);
+        return;
+    }
+
+    // Find common prefix
+    while (pos < strlen(part[0])) {
+        char c = part[0][pos];
+        for (int i = 1; i < count; i++)
+            if (part[i][pos] != c) goto stop;
+        common[pos++] = c;
+    }
+stop:
+    common[pos] = '\0';
+
+    // Print factored grammar
+    printf("%c -> %s%c'\n%c' -> ", non_terminal, common, non_terminal, non_terminal);
+    int newCount = 0;
+    for (int i = 0; i < count; i++)
+        if (strlen(part[i]) > pos) printf("%s%s", newCount++ ? " | " : "", part[i] + pos);
+   
+    if (hasEpsilon || newCount == 0) printf(" | ε");
+    printf("\n");
+}
+
+int main() {
+    char input[MAX_PRODUCTIONS][SIZE];
+    int numProductions = 0;
+
+    printf("Enter productions (type 'END' to finish):\n");
+    while (1) {
+        printf("Production %d: ", numProductions + 1);
+        fgets(input[numProductions], SIZE, stdin);
+        input[numProductions][strcspn(input[numProductions], "\n")] = '\0';
+
+        if (!strcmp(input[numProductions], "END")) break;
+        numProductions++;
+    }
+
+    printf("\nGrammar Without Left Factoring:\n");
+    for (int i = 0; i < numProductions; i++)
+        eliminateLeftFactoring(input[i][0], strchr(input[i], '>') + 1);
+
+    return 0;
+}
