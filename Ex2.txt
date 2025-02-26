@@ -1,0 +1,59 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+%}
+
+%%
+"int"        { printf("A keyword: int\n"); }
+"main"       { printf("A keyword: main\n"); }
+"return"     { printf("A keyword: return\n"); }
+
+[a-zA-Z_][a-zA-Z0-9_]*   { printf("An identifier: %s\n", yytext); }
+
+[0-9]+      { printf("An integer: %s (%s)\n", yytext, yytext); }
+
+"="         { printf("Unrecognized character: =\n"); }
+"+"         { printf("An operator: +\n"); }
+
+","         { printf("Special symbol: ,\n"); }
+";"         { printf("Special symbol: ;\n"); }
+"{"         { printf("Unrecognized character: {\n"); }
+"}"         { printf("Unrecognized character: }\n"); }
+"("         { printf("Unrecognized character: (\n"); }
+")"         { printf("Unrecognized character: )\n"); }
+
+[ \t\n]     { /* Ignore whitespace */ }
+
+.           { printf("Unrecognized character: %s\n", yytext); }
+
+%%
+
+int main(int argc, char *argv[]) {
+    FILE *fp;
+    if (argc > 1) {
+        fp = fopen(argv[1], "r");
+        if (!fp) {
+            perror("File opening failed");
+            return EXIT_FAILURE;
+        }
+        yyin = fp;
+    } else {
+        printf("Enter the filename: ");
+        char filename[100];
+        scanf("%s", filename);
+        fp = fopen(filename, "r");
+        if (!fp) {
+            perror("File opening failed");
+            return EXIT_FAILURE;
+        }
+        yyin = fp;
+    }
+    yylex();  // Begin lexical analysis
+    fclose(fp);
+    return 0;
+}
+
+int yywrap() {
+    return 1;
+}
